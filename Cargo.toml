@@ -1,0 +1,44 @@
+[package]
+name = "secret-data-tools"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ben Adams (@darwinzer0)"]
+license-file = "LICENSE"
+repository = "https://github.com/darwinzer0/secret-data-tools"
+readme = "Readme.md"
+description = "Various tools for doing data analysis in Secret Contracts"
+categories = ["cryptography::cryptocurrencies", "wasm"]
+keywords = ["secret-network", "secret-contracts", "data-science", "stats"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ["differential-privacy"]
+
+differential-privacy = [
+    "secret-data-tools-differential-privacy",
+]
+
+spatial = [
+    "secret-data-tools-spatial",
+    "secret-data-tools-differential-privacy",
+]
+
+[dependencies]
+secret-data-tools-differential-privacy = { version = "0.1", path = "packages/differential-privacy", optional = true }
+secret-data-tools-spatial = { version = "0.1", path = "packages/spatial", optional = true }
+
+[workspace]
+members = ["packages/*"]
+
+[workspace.dependencies]
+schemars = { version = "0.8.11" }
+serde = { version = "1.0" }
+cosmwasm-std = { package = "secret-cosmwasm-std", version = "1.1.10", features = [
+    "random",
+] }
+cosmwasm-storage = { package = "secret-cosmwasm-storage", version = "1.1.10" }
+secret-toolkit = { version = "0.9.0" }
+secret-toolkit-storage = "0.9.0"
+substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }

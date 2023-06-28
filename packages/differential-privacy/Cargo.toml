@@ -1,0 +1,28 @@
+[package]
+name = "secret-data-tools-differential-privacy"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ben Adams (@darwinzer0)"]
+license-file = "../../LICENSE"
+repository = "https://github.com/darwinzer0/secret-data-tools"
+readme = "Readme.md"
+description = "Fixed point data tools for Secret Contracts"
+categories = ["cryptography::cryptocurrencies", "wasm"]
+keywords = ["secret-network", "secret-contracts", "differential-privacy"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[dependencies]
+serde = { workspace = true }
+cosmwasm-std = { workspace = true }
+cosmwasm-storage = { workspace = true }
+secret-toolkit = { workspace = true }
+secret-toolkit-storage = { workspace = true }
+substrate-fixed = { workspace = true }
+
+rand_chacha = { version = "0.3.1", default-features = false }
+rand_core = { version =  "0.6.4", default-features = false }
+rand = "0.8.5"
+
+#secret-data-tools-fixed = { version = "0.1", path = "../fixed" }

@@ -1,0 +1,23 @@
+[package]
+name = "secret-data-tools-spatial"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ben Adams (@darwinzer0)"]
+license-file = "../../LICENSE"
+repository = "https://github.com/darwinzer0/secret-data-tools"
+readme = "Readme.md"
+description = "Fixed point data tools for Secret Contracts"
+categories = ["cryptography::cryptocurrencies", "wasm"]
+keywords = ["secret-network", "secret-contracts", "fixed-point"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[dependencies]
+serde = { workspace = true }
+cosmwasm-std = { workspace = true }
+cosmwasm-storage = { workspace = true }
+secret-toolkit = { workspace = true }
+secret-toolkit-storage = { workspace = true }
+substrate-fixed = { workspace = true }
+#secret-data-tools-fixed = { version = "0.1", path = "../fixed" }

@@ -1,8 +1,10 @@
 use std::{ops, cmp::Ordering};
 use cosmwasm_std::{StdResult, StdError};
-use substrate_fixed::types::I32F32;
+use serde::{Serialize, Deserialize};
+use schemars::JsonSchema;
+use substrate_fixed::{types::I32F32};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct FixedPoint2D {
     pub x: I32F32,
     pub y: I32F32,
@@ -11,6 +13,13 @@ pub struct FixedPoint2D {
 impl FixedPoint2D {
     pub fn as_vector_2d(&self) -> FixedVector2D {
         FixedVector2D { x: self.x, y: self.y }
+    }
+
+    pub fn into_stored(&self) -> StoredFixedPoint2D {
+        StoredFixedPoint2D { 
+            x: self.x.to_be_bytes().to_vec(), 
+            y: self.y.to_be_bytes().to_vec() 
+        }
     }
 }
 
@@ -24,7 +33,37 @@ impl ops::Sub<FixedPoint2D> for FixedPoint2D {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct StoredFixedPoint2D {
+    pub x: Vec<u8>,
+    pub y: Vec<u8>,
+}
+
+impl StoredFixedPoint2D {
+    pub fn into_humanized(&self) -> StdResult<FixedPoint2D> {
+        let point = FixedPoint2D {
+            x: I32F32::from_be_bytes(
+                match self.x.as_slice().try_into() {
+                    Ok(x_bytes) => x_bytes,
+                    Err(err) => { 
+                        return Err(StdError::generic_err(format!("{:?}", err))) 
+                    },
+                }
+            ),
+            y: I32F32::from_be_bytes(
+                match self.y.as_slice().try_into() {
+                    Ok(y_bytes) => y_bytes,
+                    Err(err) => { 
+                        return Err(StdError::generic_err(format!("{:?}", err))) 
+                    },
+                }
+            ),
+        };
+        Ok(point)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FixedVector2D {
     pub x: I32F32,
     pub y: I32F32,
@@ -43,6 +82,13 @@ impl FixedVector2D {
 
     pub fn as_point_2d(&self) -> FixedPoint2D {
         FixedPoint2D { x: self.x, y: self.y }
+    }
+
+    pub fn into_stored(&self) -> StoredFixedVector2D {
+        StoredFixedVector2D { 
+            x: self.x.to_be_bytes().to_vec(), 
+            y: self.y.to_be_bytes().to_vec() 
+        }
     }
 }
 
@@ -76,6 +122,36 @@ impl ops::Mul<I32F32> for FixedVector2D {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct StoredFixedVector2D {
+    pub x: Vec<u8>,
+    pub y: Vec<u8>,
+}
+
+impl StoredFixedVector2D {
+    pub fn into_humanized(&self) -> StdResult<FixedVector2D> {
+        let vector = FixedVector2D {
+            x: I32F32::from_be_bytes(
+                match self.x.as_slice().try_into() {
+                    Ok(x_bytes) => x_bytes,
+                    Err(err) => { 
+                        return Err(StdError::generic_err(format!("{:?}", err))) 
+                    },
+                }
+            ),
+            y: I32F32::from_be_bytes(
+                match self.y.as_slice().try_into() {
+                    Ok(y_bytes) => y_bytes,
+                    Err(err) => { 
+                        return Err(StdError::generic_err(format!("{:?}", err))) 
+                    },
+                }
+            ),
+        };
+        Ok(vector)
+    }
+}
+
 /// Twice the area of the triangle abc
 pub fn signed_area(a: FixedPoint2D, b: FixedPoint2D, c: FixedPoint2D) -> I32F32 {
     let p = b - a.clone();
@@ -94,7 +170,7 @@ pub fn is_counterclockwise(a: &FixedPoint2D, b: &FixedPoint2D, c: &FixedPoint2D)
     else { None }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FixedLineSegment2D {
     pub endpoints: (FixedPoint2D, FixedPoint2D),
 }
@@ -115,20 +191,67 @@ impl FixedLineSegment2D {
         (is_counterclockwise(&other.endpoints.0, &self.endpoints.0, &other.endpoints.1) != 
          is_counterclockwise(&other.endpoints.0, &self.endpoints.1, &other.endpoints.1))
     }
+
+    pub fn into_stored(&self) -> StoredFixedLineSegment2D {
+        StoredFixedLineSegment2D { 
+            endpoints: (
+                self.endpoints.0.into_stored(),
+                self.endpoints.1.into_stored(),
+            )
+        }
+    }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct FixedBBox {
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct StoredFixedLineSegment2D {
+    pub endpoints: (StoredFixedPoint2D, StoredFixedPoint2D)
+}
+
+impl StoredFixedLineSegment2D {
+    pub fn into_humanized(&self) -> StdResult<FixedLineSegment2D> {
+        Ok(FixedLineSegment2D { 
+            endpoints: (
+                self.endpoints.0.into_humanized()?,
+                self.endpoints.1.into_humanized()?,
+            ) 
+        })
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FixedBBox2D {
     lower_left: FixedPoint2D,
     upper_right: FixedPoint2D,
 }
 
-impl FixedBBox {
+impl FixedBBox2D {
     pub fn contains(&self, point: &FixedPoint2D) -> bool {
         point.x >= self.lower_left.x &&
         point.x <= self.upper_right.x &&
         point.y >= self.lower_left.y &&
         point.y <= self.upper_right.y
+    }
+
+    pub fn into_stored(&self) -> StoredFixedBBox2D {
+        StoredFixedBBox2D { 
+            lower_left: self.lower_left.into_stored(),
+            upper_right: self.upper_right.into_stored(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct StoredFixedBBox2D {
+    lower_left: StoredFixedPoint2D,
+    upper_right: StoredFixedPoint2D,
+}
+
+impl StoredFixedBBox2D {
+    pub fn into_humanized(&self) -> StdResult<FixedBBox2D> {
+        Ok(FixedBBox2D { 
+            lower_left: self.lower_left.into_humanized()?,
+            upper_right: self.upper_right.into_humanized()?,
+        })
     }
 }
 
@@ -136,7 +259,7 @@ impl FixedBBox {
 pub struct FixedPolygon2D {
     vertices: Vec<FixedPoint2D>,
     anchor: FixedPoint2D,
-    bbox: FixedBBox,
+    bbox: FixedBBox2D,
 }
 
 impl FixedPolygon2D {
@@ -167,7 +290,7 @@ impl FixedPolygon2D {
                 anchor = pt.clone();
             }
         });
-        let bbox = FixedBBox {
+        let bbox = FixedBBox2D {
             lower_left: FixedPoint2D { x: min_x, y: min_y },
             upper_right: FixedPoint2D { x: max_x, y: max_y }
         };
@@ -237,5 +360,33 @@ impl FixedPolygon2D {
         let mut points = self.vertices.clone();
         points.sort_unstable_by(|a, b| FixedPolygon2D::ccw_cmp(&self.anchor, a, b));
         points
+    }
+
+    pub fn into_stored(&self) -> StoredFixedPolygon2D {
+        StoredFixedPolygon2D { 
+            vertices: self.vertices.iter().map(|v| v.into_stored()).collect(),
+            anchor: self.anchor.into_stored(),
+            bbox: self.bbox.into_stored(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct StoredFixedPolygon2D {
+    vertices: Vec<StoredFixedPoint2D>,
+    anchor: StoredFixedPoint2D,
+    bbox: StoredFixedBBox2D,
+}
+
+impl StoredFixedPolygon2D {
+    pub fn into_humanized(&self) -> StdResult<FixedPolygon2D> {
+        Ok(FixedPolygon2D { 
+            vertices: self.vertices
+                .iter()
+                .map(|v| v.into_humanized().unwrap())
+                .collect(),
+            anchor: self.anchor.into_humanized()?,
+            bbox: self.bbox.into_humanized()?,
+        })
     }
 }

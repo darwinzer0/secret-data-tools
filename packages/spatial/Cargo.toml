@@ -15,6 +15,7 @@ all-features = true
 
 [dependencies]
 serde = { workspace = true }
+schemars = { workspace = true }
 cosmwasm-std = { workspace = true }
 cosmwasm-storage = { workspace = true }
 secret-toolkit = { workspace = true }

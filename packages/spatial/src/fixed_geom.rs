@@ -176,11 +176,11 @@ pub struct FixedLineSegment2D {
 }
 
 impl FixedLineSegment2D {
-    pub fn new(endpoint1: FixedPoint2D, endpoint2: FixedPoint2D) -> StdResult<FixedLineSegment2D> {
+    pub fn new(endpoint1: FixedPoint2D, endpoint2: FixedPoint2D) -> StdResult<Self> {
         if endpoint1 == endpoint2 {
             return Err(StdError::generic_err("Invalid: endpoints cannot be the same"));
         }
-        Ok(FixedLineSegment2D {
+        Ok(Self {
             endpoints: (endpoint1, endpoint2)
         })
     }
@@ -263,7 +263,7 @@ pub struct FixedPolygon2D {
 }
 
 impl FixedPolygon2D {
-    pub fn new(points: Vec<FixedPoint2D>) -> StdResult<FixedPolygon2D> {
+    pub fn new(points: Vec<FixedPoint2D>) -> StdResult<Self> {
         let length = points.len();
         if length < 3 {
             return Err(StdError::generic_err("Polygon must have at least 3 vertices"));
@@ -294,7 +294,7 @@ impl FixedPolygon2D {
             lower_left: FixedPoint2D { x: min_x, y: min_y },
             upper_right: FixedPoint2D { x: max_x, y: max_y }
         };
-        Ok(FixedPolygon2D { vertices: points, anchor, bbox } )
+        Ok(Self { vertices: points, anchor, bbox } )
     }
 
     pub fn len(&self) -> usize {

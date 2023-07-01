@@ -14,19 +14,19 @@ keywords = ["secret-network", "secret-contracts", "data-science", "stats"]
 all-features = true
 
 [features]
-default = ["differential-privacy"]
+default = ["dp", "spatial"]
 
-differential-privacy = [
-    "secret-data-tools-differential-privacy",
+dp = [
+    "secret-data-tools-dp",
 ]
 
 spatial = [
     "secret-data-tools-spatial",
-    "secret-data-tools-differential-privacy",
+    "secret-data-tools-dp",
 ]
 
 [dependencies]
-secret-data-tools-differential-privacy = { version = "0.1", path = "packages/differential-privacy", optional = true }
+secret-data-tools-dp = { version = "0.1", path = "packages/differential-privacy", optional = true }
 secret-data-tools-spatial = { version = "0.1", path = "packages/spatial", optional = true }
 
 [workspace]

@@ -103,7 +103,7 @@ impl IntegerLineSegment2D {
         if endpoint1 == endpoint2 {
             return Err(StdError::generic_err("Invalid: endpoints cannot be the same"));
         }
-        Ok(IntegerLineSegment2D {
+        Ok(Self {
             endpoints: (endpoint1, endpoint2)
         })
     }
@@ -170,7 +170,7 @@ impl IntegerPolygon2D {
             lower_left: IntegerPoint2D { x: min_x, y: min_y },
             upper_right: IntegerPoint2D { x: max_x, y: max_y }
         };
-        Ok(IntegerPolygon2D { vertices: points, anchor, bbox } )
+        Ok(Self { vertices: points, anchor, bbox } )
     }
 
     pub fn len(&self) -> usize {

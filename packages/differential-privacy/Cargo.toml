@@ -1,5 +1,5 @@
 [package]
-name = "secret-data-tools-differential-privacy"
+name = "secret-data-tools-dp"
 version = "0.1.0"
 edition = "2021"
 authors = ["Ben Adams (@darwinzer0)"]

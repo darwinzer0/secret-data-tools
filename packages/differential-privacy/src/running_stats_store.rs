@@ -48,10 +48,7 @@ where
 impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     /// constructor
     pub const fn new(
-        namespace: &'a [u8], 
-        epsilon: Option<I32F32>, 
-        avg_sensitivity: Option<I32F32>, 
-        privacy_budget: Option<I32F32>
+        namespace: &'a [u8],
     ) -> Self {
         Self {
             namespace,
@@ -455,10 +452,29 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     pub fn clear(
         &self,
         storage: &mut dyn Storage,
-    ) {
+        epsilon: Option<I32F32>,
+        avg_sensitivity: Option<I32F32>,
+        privacy_budget: Option<I32F32>,
+    ) -> StdResult<()> {
+        self.set_status(storage, RunningStatsStatus::CollectingData)?;
         self.set_count(storage, 0);
         self.set_sum(storage, I64F64::from(0));
-
+        self.set_upper_bound(storage, I32F32::min_value());
+        self.set_lower_bound(storage, I32F32::max_value());
+        if let Some(epsilon) = epsilon {
+            self.set_epsilon(storage, epsilon);
+        } else {
+            let epsilon_key = [self.as_slice(), EPSILON_KEY].concat();
+            storage.remove(&epsilon_key);
+        }
+        self.set_average_sensitivity(storage, avg_sensitivity)?;
+        if let Some(privacy_budget) = privacy_budget {
+            self.set_privacy_budget(storage, privacy_budget);
+        } else {
+            let budget_key = [self.as_slice(), PRIVACY_BUDGET_KEY].concat();
+            storage.remove(&budget_key);
+        }
+        Ok(())
     }
 
     pub fn add_observation(&self, storage: &mut dyn Storage, x: I32F32) -> StdResult<()> {

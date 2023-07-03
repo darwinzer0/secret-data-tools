@@ -3,8 +3,7 @@ use cosmwasm_std::{Storage, StdResult, StdError};
 use cosmwasm_storage::to_length_prefixed;
 use rand_chacha::ChaChaRng;
 use secret_toolkit::serialization::{Serde, Bincode2};
-use serde::Serialize;
-use substrate_fixed::{types::{I32F32, I64F64}, traits::Fixed};
+use substrate_fixed::types::{I32F32, I64F64};
 
 use crate::laplace;
 
@@ -135,6 +134,9 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     ) {
         let count_key = [self.as_slice(), COUNT_KEY].concat();
         storage.set(&count_key, &count.to_be_bytes());
+
+        let mut may_count = self.count.lock().unwrap();
+        *may_count = Some(count);
     }
 
     pub fn get_sum(
@@ -176,6 +178,9 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     ) {
         let sum_key = [self.as_slice(), SUM_KEY].concat();
         storage.set(&sum_key, &sum.to_be_bytes());
+
+        let mut may_sum = self.sum.lock().unwrap();
+        *may_sum = Some(sum);
     }
 
     pub fn get_upper_bound(
@@ -217,6 +222,9 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     ) {
         let upper_bound_key = [self.as_slice(), UPPER_BOUND_KEY].concat();
         storage.set(&upper_bound_key, &upper_bound.to_be_bytes());
+
+        let mut may_upper_bound = self.upper_bound.lock().unwrap();
+        *may_upper_bound = Some(upper_bound);
     }
 
     pub fn get_lower_bound(
@@ -258,6 +266,9 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     ) {
         let lower_bound_key = [self.as_slice(), LOWER_BOUND_KEY].concat();
         storage.set(&lower_bound_key, &lower_bound.to_be_bytes());
+
+        let mut may_lower_bound = self.lower_bound.lock().unwrap();
+        *may_lower_bound = Some(lower_bound);
     }
 
     pub fn get_epsilon(
@@ -301,8 +312,8 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
         let epsilon_key = [self.as_slice(), EPSILON_KEY].concat();
         storage.set(&epsilon_key, &epsilon.to_be_bytes());
 
-        //let mut may_epsilon = self.epsilon.lock().unwrap();
-        //*may_epsilon = Some(epsilon);
+        let mut may_epsilon = self.epsilon.lock().unwrap();
+        *may_epsilon = Some(epsilon);
     }
 
     pub fn get_avg_sensitivity(
@@ -338,17 +349,21 @@ impl<'a, Ser: Serde> RunningStatsStore<'a, Ser> {
     pub fn set_average_sensitivity(
         &self, 
         storage: &mut dyn Storage, 
-        average_sensitivity: Option<I32F32>,
+        avg_sensitivity: Option<I32F32>,
     ) -> StdResult<()> {
         let average_sensitivity_key = [self.as_slice(), SENSITIVITY_FOR_AVG_KEY].concat();
         let stored_average_sensitivity: Option<[u8;8]>;
-        if let Some(may_sensitivity) = average_sensitivity {
+        if let Some(may_sensitivity) = avg_sensitivity {
             stored_average_sensitivity = Some(may_sensitivity.to_be_bytes());
         } else {
             stored_average_sensitivity = None;
         }
         let data = Ser::serialize(&stored_average_sensitivity)?;
         storage.set(&average_sensitivity_key, &data);
+
+        let mut may_avg_sensibility = self.avg_sensitivity.lock().unwrap();
+        *may_avg_sensibility = avg_sensitivity;
+
         Ok(())
     }
 
